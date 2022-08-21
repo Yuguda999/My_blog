@@ -65,10 +65,11 @@ class Comment(db.Model):
     comment_author = relationship("User", back_populates="comments")
     text = db.Column(db.Text, nullable=False)
 
-if os.path.isfile('blog.db'):
-    pass
-else:
-    db.create_all()
+# if os.path.isfile('blog.db'):
+#     pass
+# else:
+#     db.create_all()
+db.create_all()
 
 
 def admin_only(f):
