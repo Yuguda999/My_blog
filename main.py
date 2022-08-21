@@ -14,13 +14,13 @@ import os, smtplib, requests
 API_KEY = '32727c8555fe49f59fe3da0785f24b54'
 API_ENDPOINT = f'https://newsapi.org/v2/top-headlines?country=ng&apiKey={API_KEY}'
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = 'gg64u84hhby7ueowdb67fyu47'
 ckeditor = CKEditor(app)
 Bootstrap(app)
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog-post.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -46,6 +46,7 @@ class User(UserMixin, db.Model):
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, nullable=True)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     author = relationship("User", back_populates="posts")
     title = db.Column(db.String(250), unique=True, nullable=True)
@@ -64,8 +65,12 @@ class Comment(db.Model):
     parent_post = relationship("BlogPost", back_populates="comments")
     comment_author = relationship("User", back_populates="comments")
     text = db.Column(db.Text, nullable=False)
-    
-db.create_all()
+
+if os.path.isfile('blog.db'):
+    pass
+else:
+    db.session.commit()
+    db.create_all()
 
 
 def admin_only(f):
@@ -76,6 +81,7 @@ def admin_only(f):
         return f(*args, **kwargs)
     return decorated_function
 
+last_post_id = len(BlogPost.query.all())
 def news_api():
     response = requests.get(API_ENDPOINT)
     articles = response.json()['articles']
@@ -89,7 +95,8 @@ def news_api():
                 body=article['content'],
                 img_url=article['urlToImage'],
                 author=User(name=article['source']['name']),
-                date=article['publishedAt'].split('T')[0]
+                date=article['publishedAt'].split('T')[0],
+                post_id= last_post_id+1,
             )
             db.session.add(new_post)
             db.session.commit()
@@ -97,7 +104,11 @@ news_api()
 
 @app.route('/')
 def get_all_posts():
-    posts = BlogPost.query.all()
+    posts = BlogPost.query.order_by(BlogPost.post_id).all()
+    for i in range(len(posts)):
+        posts[i].post_id = len(posts) - i
+    db.session.commit()
+    #posts = BlogPost.query.all()
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
@@ -212,7 +223,8 @@ def add_new_post():
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=date.today().strftime("%B %d, %Y")
+            date=date.today().strftime("%B %d, %Y"),
+            post_id=last_post_id+1
         )
         db.session.add(new_post)
         db.session.commit()
