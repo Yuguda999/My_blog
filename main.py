@@ -76,7 +76,7 @@ else:
 def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.id != 35:
+        if current_user.id != 21:
             return abort(403)
         return f(*args, **kwargs)
     return decorated_function
@@ -100,10 +100,12 @@ def news_api():
             )
             db.session.add(new_post)
             db.session.commit()
-news_api()
+
 
 @app.route('/')
 def get_all_posts():
+    if current_user.id == 21:
+        news_api()
     posts = BlogPost.query.order_by(BlogPost.post_id).all()
     for i in range(len(posts)):
         posts[i].post_id = len(posts) - i
