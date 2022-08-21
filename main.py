@@ -20,7 +20,7 @@ Bootstrap(app)
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog-post.db")
+app.config['SQLALCHEMY_DATABASE_URI'] ="sqlite:///blog-post.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -66,10 +66,10 @@ class Comment(db.Model):
     comment_author = relationship("User", back_populates="comments")
     text = db.Column(db.Text, nullable=False)
 
-if os.path.isfile('blog.db'):
+if os.path.isfile('blog-post.db'):
     pass
 else:
-    db.session.commit()
+    #db.session.commit()
     db.create_all()
 
 
