@@ -100,11 +100,7 @@ news_api()
 
 @app.route('/')
 def get_all_posts():
-    all_posts = BlogPost.query.order_by(BlogPost.index).all()
-    for i in range(len(all_posts)):
-        all_posts[i].index = len(all_posts) - i
-    db.session.commit()
-    #posts = BlogPost.query.all()
+    posts = BlogPost.query.all()
     return render_template("index.html", all_posts=all_posts, current_user=current_user)
 
 
