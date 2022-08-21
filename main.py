@@ -104,8 +104,7 @@ def news_api():
 
 @app.route('/')
 def get_all_posts():
-    if current_user.id == 21:
-        news_api()
+    news_api()
     posts = BlogPost.query.order_by(BlogPost.post_id).all()
     for i in range(len(posts)):
         posts[i].post_id = len(posts) - i
