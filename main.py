@@ -14,13 +14,13 @@ import os, smtplib, requests
 API_KEY = '32727c8555fe49f59fe3da0785f24b54'
 API_ENDPOINT = f'https://newsapi.org/v2/top-headlines?country=ng&apiKey={API_KEY}'
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'gg64u84hhby7ueowdb67fyu47'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap(app)
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -100,8 +100,12 @@ news_api()
 
 @app.route('/')
 def get_all_posts():
-    posts = BlogPost.query.all()
-    return render_template("index.html", all_posts=posts, current_user=current_user)
+    all_posts = BlogPost.query.order_by(BlogPost.index).all()
+    for i in range(len(all_posts)):
+        all_posts[i].ranking = len(all_posts) - i
+    db.session.commit()
+    #posts = BlogPost.query.all()
+    return render_template("index.html", all_posts=all_posts, current_user=current_user)
 
 
 @app.route('/register', methods=["GET", "POST"])
